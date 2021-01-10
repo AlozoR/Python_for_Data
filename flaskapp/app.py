@@ -29,26 +29,31 @@ bootstrap = Bootstrap(app)
 
 class EnterDataForm(FlaskForm):
     administrative = IntegerField("Number of administrative pages visited",
-                                  validators=[DataRequired(),
-                                              NumberRange(min=0, max=30)])
+                                  validators=[InputRequired(),
+                                              NumberRange(min=0, max=30)],
+                                  default=7)
 
     informational = IntegerField("Number of informational pages visited",
-                                 validators=[DataRequired(),
-                                             NumberRange(min=0, max=15)])
+                                 validators=[InputRequired(),
+                                             NumberRange(min=0, max=15)],
+                                 default=1)
 
     product_related = IntegerField("Number of product related pages visited",
-                                   validators=[DataRequired(),
-                                               NumberRange(min=0, max=500)])
+                                   validators=[InputRequired(),
+                                               NumberRange(min=0, max=500)],
+                                   default=310)
 
     month = IntegerField("Month of the visit",
                          validators=[DataRequired(),
-                                     NumberRange(min=1, max=12)])
+                                     NumberRange(min=1, max=12)],
+                         default=7)
 
     visitor_type = SelectField("Visitor type",
                                choices=[(0, "Returning visitor"),
                                         (1, "New visitor")],
                                validators=[InputRequired()],
-                               coerce=int)
+                               coerce=int,
+                               default=0)
 
     weekend = BooleanField("Are you visiting during the weekend",
                            default=False)
