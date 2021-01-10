@@ -20,8 +20,11 @@ from wtforms.validators import (DataRequired,
                                 InputRequired,
                                 Length,
                                 NumberRange)
+import os
 
 app = Flask(__name__, template_folder="templates")
+app.config["SECRET_KEY"] = os.urandom(32)
+bootstrap = Bootstrap(app)
 
 
 class EnterDataForm(FlaskForm):
@@ -43,7 +46,7 @@ class EnterDataForm(FlaskForm):
 
     visitor_type = SelectField("Visitor type",
                                choices=[(0, "Returning visitor"),
-                                        (1, "New_Visitor")],
+                                        (1, "New visitor")],
                                validators=[InputRequired()],
                                coerce=int)
 
@@ -53,12 +56,27 @@ class EnterDataForm(FlaskForm):
     submit = SubmitField("Submit")
 
 
-@app.route("/")
+@app.route("/", methods=["GET", "POST"])
 def home():
     form = EnterDataForm()
     if request.method == "POST" and form.validate_on_submit():
+        import joblib
+        loaded_model = joblib.load("saved_model.pkl")
+        visitor_type = [0, 0, 1] if form.visitor_type.data == 0 else [1, 0, 0]
+        prediction = bool(loaded_model.predict(
+            [[form.administrative.data, form.informational.data,
+              form.product_related.data, form.weekend.data,
+              form.month.data, *visitor_type]]))
+        session["bought"] = prediction
+        return redirect(url_for("show_result"))
+    return render_template("home.html", form=form)
 
+
+@app.route("/results")
+def show_result():
+    return render_template("results.html",
+                           success=session.get("bought", "first"))
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=80)
+    app.run(host='127.0.0.1', port=8080, debug=True)
